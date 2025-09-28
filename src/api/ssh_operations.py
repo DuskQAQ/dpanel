@@ -5,12 +5,12 @@ import paramiko
 import io
 import time
 
-from src.database import get_db
-from src.models import SSHKey, SSHPassword
-from src.crypto import decrypt_data
-from src.api.auth import verify_credentials
+from ..database import get_db
+from ..models import SSHKey, SSHPassword
+from ..crypto import decrypt_data
+from .auth import get_current_user
 
-router = APIRouter(dependencies=[Depends(verify_credentials)])
+router = APIRouter()
 
 # 请求模型
 class SSHCommand(BaseModel):
@@ -164,7 +164,8 @@ def create_ssh_client(ssh_key_id: int, db: Session) -> paramiko.SSHClient:
 def execute_ssh_command(
     ssh_key_id: int,
     command_request: SSHCommand,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: str = Depends(get_current_user)
 ):
     """
     在远程服务器上执行SSH命令（使用密钥）
@@ -208,7 +209,8 @@ def execute_ssh_command(
 def execute_ssh_command_with_password(
     ssh_password_id: int,
     command_request: SSHCommand,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: str = Depends(get_current_user)
 ):
     """
     在远程服务器上执行SSH命令（使用密码）
@@ -251,7 +253,8 @@ def execute_ssh_command_with_password(
 @router.get("/{ssh_key_id}/test-connection")
 def test_ssh_connection(
     ssh_key_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: str = Depends(get_current_user)
 ):
     """
     测试SSH连接是否正常（使用密钥）
@@ -292,7 +295,8 @@ def test_ssh_connection(
 @router.get("/password/{ssh_password_id}/test-connection")
 def test_ssh_connection_with_password(
     ssh_password_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: str = Depends(get_current_user)
 ):
     """
     测试SSH连接是否正常（使用密码）

@@ -4,12 +4,12 @@ from pydantic import BaseModel, Field
 from typing import List, Optional
 from datetime import datetime
 
-from src.database import get_db
-from src.models import SSHPassword
-from src.crypto import encrypt_data, decrypt_data
-from src.api.auth import verify_credentials
+from ..database import get_db
+from ..models import SSHPassword
+from ..crypto import encrypt_data, decrypt_data
+from .auth import get_current_user
 
-router = APIRouter(dependencies=[Depends(verify_credentials)])
+router = APIRouter()
 
 # 请求模型
 class SSHPasswordCreate(BaseModel):
@@ -43,7 +43,7 @@ class SSHPasswordResponse(BaseModel):
         orm_mode = True
 
 @router.post("/", response_model=SSHPasswordResponse, status_code=status.HTTP_201_CREATED)
-def create_ssh_password(ssh_password: SSHPasswordCreate, db: Session = Depends(get_db)):
+def create_ssh_password(ssh_password: SSHPasswordCreate, db: Session = Depends(get_db), current_user: str = Depends(get_current_user)):
     """
     创建新的SSH密码连接
     注意：密码会在存储前进行加密
@@ -77,7 +77,7 @@ def create_ssh_password(ssh_password: SSHPasswordCreate, db: Session = Depends(g
     return db_ssh_password
 
 @router.get("/", response_model=List[SSHPasswordResponse])
-def get_ssh_passwords(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+def get_ssh_passwords(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), current_user: str = Depends(get_current_user)):
     """
     获取SSH密码连接列表
     """
@@ -85,7 +85,7 @@ def get_ssh_passwords(skip: int = 0, limit: int = 100, db: Session = Depends(get
     return ssh_passwords
 
 @router.get("/{ssh_password_id}", response_model=SSHPasswordResponse)
-def get_ssh_password(ssh_password_id: int, db: Session = Depends(get_db)):
+def get_ssh_password(ssh_password_id: int, db: Session = Depends(get_db), current_user: str = Depends(get_current_user)):
     """
     获取单个SSH密码连接详情
     """
@@ -101,7 +101,8 @@ def get_ssh_password(ssh_password_id: int, db: Session = Depends(get_db)):
 def update_ssh_password(
     ssh_password_id: int,
     ssh_password: SSHPasswordUpdate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: str = Depends(get_current_user)
 ):
     """
     更新SSH密码连接信息
@@ -142,7 +143,7 @@ def update_ssh_password(
     return db_ssh_password
 
 @router.delete("/{ssh_password_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_ssh_password(ssh_password_id: int, db: Session = Depends(get_db)):
+def delete_ssh_password(ssh_password_id: int, db: Session = Depends(get_db), current_user: str = Depends(get_current_user)):
     """
     删除SSH密码连接
     """

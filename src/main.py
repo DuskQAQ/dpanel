@@ -29,13 +29,14 @@ app.add_middleware(
 )
 
 # 导入路由
-from src.api import auth, ssh_keys, ssh_passwords, ssh_operations
+from .api import auth, ssh_keys, ssh_passwords, ssh_operations, xrayr_configs
 
 # 注册路由
 app.include_router(auth.router, prefix="/auth", tags=["认证"])
 app.include_router(ssh_keys.router, prefix="/ssh-keys", tags=["SSH密钥管理"])
 app.include_router(ssh_passwords.router, prefix="/ssh-passwords", tags=["SSH密码管理"])
 app.include_router(ssh_operations.router, prefix="/ssh", tags=["SSH操作"])
+app.include_router(xrayr_configs.router, prefix="/xrayr-configs", tags=["XrayR配置管理"])
 
 # 根路径路由
 @app.get("/")

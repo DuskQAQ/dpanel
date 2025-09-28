@@ -4,12 +4,12 @@ from pydantic import BaseModel, Field
 from typing import List, Optional
 from datetime import datetime
 
-from src.database import get_db
-from src.models import SSHKey
-from src.crypto import encrypt_data, decrypt_data
-from src.api.auth import verify_credentials
+from ..database import get_db
+from ..models import SSHKey
+from ..crypto import encrypt_data, decrypt_data
+from .auth import get_current_user
 
-router = APIRouter(dependencies=[Depends(verify_credentials)])
+router = APIRouter()
 
 # 请求模型
 class SSHKeyCreate(BaseModel):
@@ -43,7 +43,7 @@ class SSHKeyResponse(BaseModel):
         orm_mode = True
 
 @router.post("/", response_model=SSHKeyResponse, status_code=status.HTTP_201_CREATED)
-def create_ssh_key(ssh_key: SSHKeyCreate, db: Session = Depends(get_db)):
+def create_ssh_key(ssh_key: SSHKeyCreate, db: Session = Depends(get_db), current_user: str = Depends(get_current_user)):
     """
     创建新的SSH密钥
     注意：私钥会在存储前进行加密
@@ -77,7 +77,7 @@ def create_ssh_key(ssh_key: SSHKeyCreate, db: Session = Depends(get_db)):
     return db_ssh_key
 
 @router.get("/", response_model=List[SSHKeyResponse])
-def get_ssh_keys(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+def get_ssh_keys(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), current_user: str = Depends(get_current_user)):
     """
     获取SSH密钥列表
     """
@@ -85,7 +85,7 @@ def get_ssh_keys(skip: int = 0, limit: int = 100, db: Session = Depends(get_db))
     return ssh_keys
 
 @router.get("/{ssh_key_id}", response_model=SSHKeyResponse)
-def get_ssh_key(ssh_key_id: int, db: Session = Depends(get_db)):
+def get_ssh_key(ssh_key_id: int, db: Session = Depends(get_db), current_user: str = Depends(get_current_user)):
     """
     获取单个SSH密钥详情
     """
@@ -101,7 +101,8 @@ def get_ssh_key(ssh_key_id: int, db: Session = Depends(get_db)):
 def update_ssh_key(
     ssh_key_id: int,
     ssh_key: SSHKeyUpdate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: str = Depends(get_current_user)
 ):
     """
     更新SSH密钥信息
@@ -142,7 +143,7 @@ def update_ssh_key(
     return db_ssh_key
 
 @router.delete("/{ssh_key_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_ssh_key(ssh_key_id: int, db: Session = Depends(get_db)):
+def delete_ssh_key(ssh_key_id: int, db: Session = Depends(get_db), current_user: str = Depends(get_current_user)):
     """
     删除SSH密钥
     """

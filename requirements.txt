@@ -5,3 +5,5 @@ cryptography==42.0.2
 paramiko==3.4.0
 sqlalchemy==2.0.25
 pydantic==2.5.3
+pymysql==1.1.0
+pyyaml==6.0.1
