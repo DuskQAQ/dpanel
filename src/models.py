@@ -5,19 +5,20 @@ try:
 except ImportError:
     from database import Base
 
-class SSHKey(Base):
+class Server(Base):
     """
-    SSH密钥模型
-    用于存储加密后的SSH密钥信息
+    服务器模型
+    用于存储服务器信息和SSH连接凭证（密钥或密码）
     """
-    __tablename__ = "ssh_keys"
+    __tablename__ = "servers"
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(100), index=True, nullable=False, unique=True)
-    hostname = Column(String(255), nullable=False)
+    hostname = Column(String(255), nullable=False)  # 主机名或IP地址
     port = Column(Integer, default=22)
     username = Column(String(100), nullable=False)
-    encrypted_private_key = Column(Text, nullable=False)  # 加密后的私钥
+    encrypted_private_key = Column(Text, nullable=True)  # 加密后的私钥（可选）
+    encrypted_password = Column(Text, nullable=True)  # 加密后的密码（可选）
     description = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
@@ -31,8 +32,7 @@ class XrayRConfig(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(100), index=True, nullable=False, unique=True)
-    ssh_connection_id = Column(Integer, nullable=False)  # 关联的SSH连接ID（可以是ssh_keys或ssh_passwords的ID）
-    ssh_connection_type = Column(String(20), nullable=False)  # 'key' 或 'password'
+    server_id = Column(Integer, ForeignKey('servers.id'), nullable=False)  # 关联的服务器ID
     config_path = Column(String(500), default="/etc/XrayR/config.yml")  # 配置文件路径
     raw_config = Column(Text, nullable=True)  # 原始配置文件内容
     parsed_config = Column(JSON, nullable=True)  # 解析后的配置JSON
@@ -41,19 +41,27 @@ class XrayRConfig(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
-class SSHPassword(Base):
-    """
-    SSH密码模型
-    用于存储加密后的SSH密码登录信息
-    """
-    __tablename__ = "ssh_passwords"
-
+# 兼容旧代码的模型定义（将在后续完全迁移后移除）
+class SSHKey(Base):
+    __tablename__ = "ssh_keys"
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(100), index=True, nullable=False, unique=True)
     hostname = Column(String(255), nullable=False)
     port = Column(Integer, default=22)
     username = Column(String(100), nullable=False)
-    encrypted_password = Column(Text, nullable=False)  # 加密后的密码
+    encrypted_private_key = Column(Text, nullable=False)
+    description = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+class SSHPassword(Base):
+    __tablename__ = "ssh_passwords"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(100), index=True, nullable=False, unique=True)
+    hostname = Column(String(255), nullable=False)
+    port = Column(Integer, default=22)
+    username = Column(String(100), nullable=False)
+    encrypted_password = Column(Text, nullable=False)
     description = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

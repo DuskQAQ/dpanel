@@ -40,7 +40,7 @@ class SSHKeyResponse(BaseModel):
     updated_at: Optional[datetime]
     
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 @router.post("/", response_model=SSHKeyResponse, status_code=status.HTTP_201_CREATED)
 def create_ssh_key(ssh_key: SSHKeyCreate, db: Session = Depends(get_db), current_user: str = Depends(get_current_user)):

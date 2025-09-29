@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from database import engine, Base, DATABASE_TYPE, DATABASE_URL
-from models import SSHKey, SSHPassword, XrayRConfig
+from models import Server, XrayRConfig
 
 
 def test_database_connection():

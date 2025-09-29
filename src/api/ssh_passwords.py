@@ -40,7 +40,7 @@ class SSHPasswordResponse(BaseModel):
     updated_at: Optional[datetime]
     
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 @router.post("/", response_model=SSHPasswordResponse, status_code=status.HTTP_201_CREATED)
 def create_ssh_password(ssh_password: SSHPasswordCreate, db: Session = Depends(get_db), current_user: str = Depends(get_current_user)):
